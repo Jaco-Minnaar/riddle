@@ -83,7 +83,7 @@ async fn compliment(ctx: &Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
-pub async fn run() -> Result<()> {
+pub async fn init_client() -> Result<Client> {
     let framework = StandardFramework::new()
         .configure(|c| c.prefix("!"))
         .group(&GENERAL_GROUP);
@@ -91,17 +91,12 @@ pub async fn run() -> Result<()> {
     // Login with a bot token from the environment
     let token = env::var("DISCORD_API_KEY").expect("token");
     let intents = GatewayIntents::non_privileged() | GatewayIntents::MESSAGE_CONTENT;
-    let mut client = Client::builder(token, intents)
+    let client = Client::builder(token, intents)
         .event_handler(Handler)
         .framework(framework)
         .await
         .expect("Error creating client");
 
     // start listening for events by starting a single shard
-    if let Err(why) = client.start().await {
-        println!("An error occurred while running the client: {:?}", why);
-        Err(anyhow!(why))
-    } else {
-        Ok(())
-    }
+    Ok(client)
 }
