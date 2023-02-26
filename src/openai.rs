@@ -25,12 +25,38 @@ pub async fn get_openai_text(prompt: String, temp: f32) -> Result<String> {
 
     let content: OpenAiResponse = res.json().await?;
 
-    Ok(content
-        .choices
-        .first()
-        .ok_or(anyhow!("choice not available"))?
-        .text
-        .clone())
+    match content {
+        OpenAiResponse::Ok { choices, .. } => Ok(choices
+            .first()
+            .ok_or(anyhow!("choice not available"))?
+            .text
+            .clone()),
+        OpenAiResponse::Err { error } => Err(anyhow!(error.message)),
+    }
+}
+
+#[derive(Debug, Deserialize)]
+struct OpenAiError {
+    message: String,
+    r#type: String,
+    param: Option<()>,
+    code: Option<()>,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(untagged)]
+enum OpenAiResponse {
+    Ok {
+        id: String,
+        object: String,
+        created: u64,
+        model: String,
+        choices: Vec<GptTextOption>,
+        usage: UsageDetails,
+    },
+    Err {
+        error: OpenAiError,
+    },
 }
 
 #[derive(Serialize, Debug)]
@@ -54,14 +80,4 @@ struct UsageDetails {
     prompt_tokens: u32,
     completion_tokens: u32,
     total_tokens: u32,
-}
-
-#[derive(Deserialize, Debug)]
-struct OpenAiResponse {
-    id: String,
-    object: String,
-    created: u64,
-    model: String,
-    choices: Vec<GptTextOption>,
-    usage: UsageDetails,
 }
