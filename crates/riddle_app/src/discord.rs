@@ -89,7 +89,7 @@ pub async fn init_client() -> Result<Client> {
         .group(&GENERAL_GROUP);
 
     // Login with a bot token from the environment
-    let token = env::var("DISCORD_API_KEY").or(Err(anyhow!("token not found")))?;
+    let token = env::var("DISCORD_API_KEY").or(Err(anyhow!("Discord token not found")))?;
     let intents = GatewayIntents::non_privileged() | GatewayIntents::MESSAGE_CONTENT;
     let client = Client::builder(token, intents)
         .event_handler(Handler)
