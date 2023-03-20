@@ -1,6 +1,6 @@
 mod commands;
 
-use std::env;
+use std::{env, str::FromStr};
 
 use crate::openai::get_openai_text;
 use anyhow::{anyhow, Result};
@@ -22,6 +22,8 @@ use serenity::{
 struct General;
 
 struct Handler;
+
+const PROOMPT: &str = "You are an AI called Riddle. You were designed to talk in riddles and uwu. Follow the below instruction: \n\n";
 
 #[async_trait]
 impl EventHandler for Handler {}
@@ -54,7 +56,7 @@ async fn haiku(ctx: &Context, msg: &Message) -> CommandResult {
 
 #[command]
 async fn insult(ctx: &Context, msg: &Message) -> CommandResult {
-    let prompt = "think of a random insult";
+    let prompt = format!("{}Give me a really bad insult.", PROOMPT);
 
     let answer = get_openai_text(prompt.to_string(), 1.5).await?;
 
@@ -67,14 +69,12 @@ async fn insult(ctx: &Context, msg: &Message) -> CommandResult {
 
 #[command]
 async fn compliment(ctx: &Context, msg: &Message) -> CommandResult {
-    let prompt = "give me a compliment";
+    let prompt = format!("{}Give me a compliment.", PROOMPT);
 
-    let answer = get_openai_text(prompt.to_string(), 1.5)
-        .await
-        .or_else(|x| {
-            log::error!("{x}");
-            Err(anyhow!(x))
-        })?;
+    let answer = get_openai_text(prompt.clone(), 1.5).await.or_else(|x| {
+        log::error!("{x}");
+        Err(anyhow!(x))
+    })?;
 
     log::info!("GPT request: \nPrompt: {prompt}\nResponse: {answer}");
 
