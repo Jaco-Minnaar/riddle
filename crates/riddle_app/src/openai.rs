@@ -1,63 +1,76 @@
-use std::{env, str::FromStr};
+use std::str::FromStr;
 
 use anyhow::{anyhow, Result};
-use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
-const PROOMPT: &str = "You are an AI called Riddle. Answer all questions in riddles and uwu.";
+const PROOMPT: &str = "You are an AI called Riddle. Answer all questions in uwu.";
 
-pub async fn get_openai_text(prompt: String, temp: f32) -> Result<String> {
-    let req = OpenAiRequest {
-        model: "gpt-3.5-turbo".to_string(),
-        temperature: Some(temp),
-        prompt: None,
-        messages: Some(vec![
-            GptChatMessage {
-                role: ChatRole::System,
-                content: PROOMPT.to_string(),
-            },
-            GptChatMessage {
-                role: ChatRole::User,
-                content: prompt,
-            },
-        ]),
-        max_tokens: 1000,
-    };
+pub struct OpenAiClient {
+    http_client: reqwest::Client,
+    api_key: String,
+}
 
-    dbg!(&req);
-
-    let mut auth = String::from_str("Bearer ")?;
-    auth.push_str(&env::var("OPENAI_API_KEY")?);
-
-    let client = Client::new();
-    let res = client
-        .post("https://api.openai.com/v1/chat/completions")
-        .header("Authorization", auth)
-        .json(&req)
-        .send()
-        .await?;
-
-    dbg!(res.status());
-
-    let content: OpenAiResponse = res.json().await?;
-
-    dbg!(&content);
-
-    match content {
-        OpenAiResponse::Ok { choices, .. } => {
-            let first_choice = choices.first().ok_or(anyhow!("choice not available"))?;
-
-            if let Some(text) = &first_choice.text {
-                return Ok(text.to_string());
-            }
-
-            if let Some(messages) = &first_choice.message {
-                return Ok(messages.content.clone());
-            }
-
-            Err(anyhow!("choice not available"))
+impl OpenAiClient {
+    pub fn new(http_client: reqwest::Client, api_key: String) -> Self {
+        Self {
+            http_client,
+            api_key,
         }
-        OpenAiResponse::Err { error } => Err(anyhow!(error.message)),
+    }
+
+    pub async fn get_openai_text(&self, prompt: String, temp: f32) -> Result<String> {
+        let req = OpenAiRequest {
+            model: "gpt-3.5-turbo".to_string(),
+            temperature: Some(temp),
+            prompt: None,
+            messages: Some(vec![
+                GptChatMessage {
+                    role: ChatRole::System,
+                    content: PROOMPT.to_string(),
+                },
+                GptChatMessage {
+                    role: ChatRole::User,
+                    content: prompt,
+                },
+            ]),
+            max_tokens: 1000,
+        };
+
+        dbg!(&req);
+
+        let mut auth = String::from_str("Bearer ")?;
+        auth.push_str(&self.api_key);
+
+        let res = self
+            .http_client
+            .post("https://api.openai.com/v1/chat/completions")
+            .header("Authorization", auth)
+            .json(&req)
+            .send()
+            .await?;
+
+        dbg!(res.status());
+
+        let content: OpenAiResponse = res.json().await?;
+
+        dbg!(&content);
+
+        match content {
+            OpenAiResponse::Ok { choices, .. } => {
+                let first_choice = choices.first().ok_or(anyhow!("choice not available"))?;
+
+                if let Some(text) = &first_choice.text {
+                    return Ok(text.to_string());
+                }
+
+                if let Some(messages) = &first_choice.message {
+                    return Ok(messages.content.clone());
+                }
+
+                Err(anyhow!("choice not available"))
+            }
+            OpenAiResponse::Err { error } => Err(anyhow!(error.message)),
+        }
     }
 }
 
