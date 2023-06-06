@@ -5,8 +5,6 @@ use anyhow::{anyhow, Result};
 use serenity::{async_trait, model::prelude::Message, prelude::*};
 
 const PROOMPT: &str = "You are an AI called Riddle. Everything you say must be mysterious and wise. Follow the below instruction: \n\n";
-const AI_SYSTEM: &str =
-    "You are an AI called Riddle. Everything you say must be mysterious and wise";
 
 struct Handler {
     openai_client: OpenAiClient,
@@ -111,7 +109,6 @@ pub async fn init_client(discord_token: &str, openai_token: String) -> Result<Cl
         .event_handler(Handler::new(OpenAiClient::new(
             reqwest::Client::new(),
             openai_token,
-            AI_SYSTEM.to_string(),
         )))
         .await
         .expect("Error creating client");

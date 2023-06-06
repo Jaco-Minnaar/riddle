@@ -6,15 +6,13 @@ use serde::{Deserialize, Serialize};
 pub struct OpenAiClient {
     http_client: reqwest::Client,
     api_key: String,
-    system: String,
 }
 
 impl OpenAiClient {
-    pub fn new(http_client: reqwest::Client, api_key: String, system: String) -> Self {
+    pub fn new(http_client: reqwest::Client, api_key: String) -> Self {
         Self {
             http_client,
             api_key,
-            system,
         }
     }
 
