@@ -4,7 +4,7 @@ use crate::openai::OpenAiClient;
 use anyhow::{anyhow, Result};
 use serenity::{async_trait, model::prelude::Message, prelude::*};
 
-const PROOMPT: &str = "You are an AI called Riddle. Everything you say must be mysterious and wise. Follow the below instruction: \n\n";
+const PROOMPT: &str = "You are an AI called Riddle. Everything you say is in uwu language. Follow the below instruction: \n\n";
 
 struct Handler {
     openai_client: OpenAiClient,
