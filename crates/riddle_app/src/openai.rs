@@ -3,36 +3,27 @@ use std::str::FromStr;
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
-const PROOMPT: &str = "You are an AI called Riddle. Answer all questions in uwu.";
-
 pub struct OpenAiClient {
     http_client: reqwest::Client,
     api_key: String,
+    system: String,
 }
 
 impl OpenAiClient {
-    pub fn new(http_client: reqwest::Client, api_key: String) -> Self {
+    pub fn new(http_client: reqwest::Client, api_key: String, system: String) -> Self {
         Self {
             http_client,
             api_key,
+            system,
         }
     }
 
     pub async fn get_openai_text(&self, prompt: String, temp: f32) -> Result<String> {
         let req = OpenAiRequest {
-            model: "gpt-3.5-turbo".to_string(),
+            model: "text-davinci-003".to_string(),
             temperature: Some(temp),
-            prompt: None,
-            messages: Some(vec![
-                GptChatMessage {
-                    role: ChatRole::System,
-                    content: PROOMPT.to_string(),
-                },
-                GptChatMessage {
-                    role: ChatRole::User,
-                    content: prompt,
-                },
-            ]),
+            prompt: Some(prompt),
+            // messages: None,
             max_tokens: 1000,
         };
 
@@ -43,7 +34,7 @@ impl OpenAiClient {
 
         let res = self
             .http_client
-            .post("https://api.openai.com/v1/chat/completions")
+            .post("https://api.openai.com/v1/completions")
             .header("Authorization", auth)
             .json(&req)
             .send()
@@ -112,7 +103,7 @@ struct OpenAiRequest {
     temperature: Option<f32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     prompt: Option<String>,
-    messages: Option<Vec<GptChatMessage>>,
+    // messages: Option<Vec<GptChatMessage>>,
     max_tokens: u16,
 }
 

@@ -4,7 +4,9 @@ use crate::openai::OpenAiClient;
 use anyhow::{anyhow, Result};
 use serenity::{async_trait, model::prelude::Message, prelude::*};
 
-const PROOMPT: &str = "You are an AI called Riddle. You were designed to talk in uwu. Follow the below instruction: \n\n";
+const PROOMPT: &str = "You are an AI called Riddle. Everything you say must be mysterious and wise. Follow the below instruction: \n\n";
+const AI_SYSTEM: &str =
+    "You are an AI called Riddle. Everything you say must be mysterious and wise";
 
 struct Handler {
     openai_client: OpenAiClient,
@@ -23,7 +25,8 @@ impl Handler {
 
     async fn haiku(&self, ctx: &Context, msg: &Message) -> Result<()> {
         let prompt = format!(
-            "Write a haiku with the following title: '{}'",
+            "{}Write a haiku with the following title: '{}'",
+            PROOMPT,
             msg.content.replace("!haiku", "")
         );
 
@@ -108,6 +111,7 @@ pub async fn init_client(discord_token: &str, openai_token: String) -> Result<Cl
         .event_handler(Handler::new(OpenAiClient::new(
             reqwest::Client::new(),
             openai_token,
+            AI_SYSTEM.to_string(),
         )))
         .await
         .expect("Error creating client");
