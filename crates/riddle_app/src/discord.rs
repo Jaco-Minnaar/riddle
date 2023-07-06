@@ -45,7 +45,15 @@ impl Handler {
     }
 
     async fn insult(&self, ctx: &Context, msg: &Message) -> Result<()> {
-        let prompt = format!("{}Give me a really bad insult.", PROOMPT);
+        let user_prompt = msg.content.replace("!insult", "");
+        let prompt = if user_prompt.trim().is_empty() {
+            format!("{}Make me feel like the piece of shit that I am.", PROOMPT)
+        } else {
+            format!(
+                "{}Insult me about the following subject: {}. Make me feel like the piece of shit that I am.",
+                PROOMPT, user_prompt
+            )
+        };
 
         let answer = self
             .openai_client
@@ -60,7 +68,15 @@ impl Handler {
     }
 
     async fn compliment(&self, ctx: &Context, msg: &Message) -> Result<()> {
-        let prompt = format!("{}Give me a compliment.", PROOMPT);
+        let user_prompt = msg.content.replace("!compliment", "");
+        let prompt = if user_prompt.trim().is_empty() {
+            format!("{}Give me a compliment.", PROOMPT)
+        } else {
+            format!(
+                "{}Give me a compliment about the following subject: {}.",
+                PROOMPT, user_prompt
+            )
+        };
 
         let answer = self
             .openai_client
